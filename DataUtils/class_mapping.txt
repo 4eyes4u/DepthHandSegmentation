@@ -1,0 +1,7 @@
+(255, 0, 0) -> palm
+(0, 255, 0) -> small finger
+(0, 0, 255) -> middle finger
+(255, 255, 0) -> middle joints
+(255, 0, 255) -> thumb
+(255, 128, 0) -> index finger
+(0, 0, 0) -> background

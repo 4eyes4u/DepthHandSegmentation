@@ -1,12 +1,13 @@
+import argparse
 import cv2
-from PIL import Image
 import numpy as np
-from matplotlib import pyplot as plt
 import os
 import sys
+
+from PIL import Image
+from matplotlib import pyplot as plt
 from scipy.ndimage.measurements import label
 from scipy.spatial import ConvexHull
-import argparse
 
 DEPTH = 1  # flag for debugging
 COLOR = 2  # flag for debugging
@@ -168,6 +169,7 @@ def display_color(path):
 
         return img
 
+    # fetching data
     img_frame = Image.open(path)
     img_rgb = np.array(img_frame)
     # img_rgb = center_crop(img_rgb, 640, 360)
@@ -185,13 +187,12 @@ def display_color(path):
 
     # extracting hand from background
     _, thresh = cv2.threshold(img_gray, args.threshold, 255, cv2.THRESH_BINARY_INV)
-    display_image(thresh)
     img_bgr[thresh == 0] = 0
     img_hsv[thresh == 0] = 0
 
     # segmentation
     color_red = extract_color(img_hsv, lower=[170, 50, 0], upper=[178, 255, 255])  # RED
-    pixels_red = keep_largest_component(color_red, keep=1, sample=False)
+    pixels_red = keep_largest_component(color_red, keep=args.red_components, sample=False)
     placeholder_rgb[pixels_red[0], pixels_red[1]] = MAPPING_RED
     centroid_red = np.mean(pixels_red, axis=1).astype(np.int32)
     placeholder_rgb = fill_convex_hull(pixels_red, placeholder_rgb, MAPPING_RED)
@@ -214,51 +215,54 @@ def display_color(path):
     centroid_blue = np.mean(pixels_blue, axis=1).astype(np.int32)
     placeholder_rgb = fill_convex_hull(pixels_blue, placeholder_rgb, MAPPING_BLUE)
 
-    cv2.circle(img_rgb, (centroid_red[1], centroid_red[0]), 15, (255, 255, 255))
-    cv2.circle(img_rgb, (centroid_violet[1], centroid_violet[0]), 15, (255, 255, 255))
-    cv2.circle(img_rgb, (centroid_green[1], centroid_green[0]), 15, (255, 255, 255))
-    cv2.circle(img_rgb, (centroid_blue[1], centroid_blue[0]), 15, (255, 255, 255))
-
-    # color_white = extract_color(img_hsv, lower=[0, 70, 80], upper=[10, 90, 255])  # TODO: find ranges
-    # pixels_white = keep_largest_component(color_white, keep=1, sample=True)
-    # placeholder_rgb[pixels_white[0], pixels_white[1]] = MAPPING_WHITE
-    # placeholder_rgb = fill_convex_hull(pixels_white, placeholder_rgb, MAPPING_WHITE)
-
     color_yellow = extract_color(img_hsv, lower=[5, 180, 0], upper=[20, 255, 255])  # YELLOW
     rows_yellow, cols_yellow, _ = np.where(color_yellow != [0, 0, 0])
     placeholder_rgb[rows_yellow, cols_yellow] = MAPPING_YELLOW
 
-    color_orange = extract_color2(img_hsv,
-                                  first_range=[[178, 150, 0], [179, 20, 255]],
-                                  second_range=[[0, 150, 0], [3, 200, 255]])
+    color_orange = extract_color(img_hsv, lower=[0, 150, 0], upper=[3, 200, 255])
+    # color_orange = extract_color2(img_hsv,
+    #                               first_range=[[178, 150, 0], [179, 200, 255]],
+    #                               second_range=[[0, 150, 0], [3, 200, 255]])
     pixels_orange = keep_largest_component(color_orange)
     placeholder_rgb[pixels_orange[0], pixels_orange[1]] = MAPPING_ORANGE
     centroid_orange = np.mean(pixels_orange, axis=1).astype(np.int32)
     placeholder_rgb = fill_convex_hull(pixels_orange, placeholder_rgb, MAPPING_ORANGE)
 
+    # drawing centroids for every class
+    cv2.circle(img_rgb, (centroid_red[1], centroid_red[0]), 15, (255, 255, 255))
+    cv2.circle(img_rgb, (centroid_violet[1], centroid_violet[0]), 15, (255, 255, 255))
+    cv2.circle(img_rgb, (centroid_green[1], centroid_green[0]), 15, (255, 255, 255))
+    cv2.circle(img_rgb, (centroid_blue[1], centroid_blue[0]), 15, (255, 255, 255))
     cv2.circle(img_rgb, (centroid_orange[1], centroid_orange[0]), 15, (255, 255, 255))
 
-    # cv2.imwrite(path.split(os.sep)[-1], cv2.cvtColor(placeholder_rgb, cv2.COLOR_RGB2BGR))
-    display_image(cv2.cvtColor(placeholder_rgb, cv2.COLOR_RGB2BGR), path.split(os.sep)[-1])
+    # cv2.circle(img_rgb, (centroid_orange[1], centroid_orange[0]), 15, (255, 255, 255))  # centroids on every class
+    # display_image(cv2.cvtColor(placeholder_rgb, cv2.COLOR_RGB2BGR), path.split(os.sep)[-1])
+
+    path_split, file_name = os.path.split(path)
+    file_name = file_name.replace("c", "s")
+    path = os.path.join(path_split, file_name)
+    cv2.imwrite(path, cv2.cvtColor(placeholder_rgb, cv2.COLOR_RGB2BGR))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--red_components", help="1 or 2 depending on finger overlap", type=int, default=1)
-    parser.add_argument('--threshold', help='Threshold for binarizing image (background extraction)', type=int, default=130)
+    parser.add_argument("--walk_dir", help="Directory with images", type=str, required=True)
+    parser.add_argument("--red_components", help="1 or 2 depending on finger overlap", type=int, required=True)
+    parser.add_argument('--threshold', help='Threshold for binarizing image (background extraction)', type=int, required=True)
     args = parser.parse_args()
-    args.red_components = 1
 
-    FLAGS = 1
+    FLAGS = 2
     if FLAGS & DEPTH:
         depth_walk = r"C:\Program Files\Azure Kinect SDK v1.1.1\tools\p0g4"
         display_depth(depth_walk)
 
     if FLAGS & COLOR:
-        color_walk = r"C:\Users\kosta\Desktop\FullData\p0g0"
-        for root, dirs, files in os.walk(color_walk):
+        for root, dirs, files in os.walk(args.walk_dir):
             for f in files:
                 if "png" in f:
-                    display_color(os.path.join(root, f))
-
-    # display_depth(r"C:\Program Files\Azure Kinect SDK v1.1.1\tools\depth")
-    display_color(r"C:\Program Files\Azure Kinect SDK v1.1.1\tools\p0g3t03.png")
+                    try:
+                        path = os.path.join(root, f)
+                        display_color(path)
+                        print("{} finished".format(path))
+                    except:
+                        print("{} failed".format(path))
+                        continue
