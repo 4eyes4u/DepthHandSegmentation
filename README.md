@@ -19,8 +19,8 @@ Every take of a single gesture belongs to either training or validation set but 
 There were total of ~2800 frames. Epoch for DeepLab takes about 30 minutes on GTX 1060 with 6GB of video memory. It was trained for 5 epochs. LeNet was trained until validation loss started increasing. Whole LeNet training takes about 5 minutes on Tesla k80.
 
 ## Results
-* Mean intersection over union (mIOU): xx%
-* Class acuraccy: zz%
+* Mean intersection over union (mIOU): 0.859
+* Class acuraccy: 93.5%
 * Gesture classification: 99%
 
 ## Futher work
