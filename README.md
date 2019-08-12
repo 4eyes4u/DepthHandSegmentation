@@ -21,7 +21,7 @@ There were total of ~2800 frames. Epoch for DeepLab takes about 30 minutes on GT
 ## Results
 * Mean intersection over union (mIOU): 0.859
 * Class acuraccy: 93.5%
-* Gesture classification: 99%
+* Gesture classification: 97%
 
 ## Futher work
 * Collect more data in different environment
