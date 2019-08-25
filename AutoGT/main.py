@@ -56,7 +56,7 @@ def display_depth(walk_dir):
             if "png" in f:
                 img = Image.open(os.path.join(root, f))
                 pixels = np.array(img)
-                plt.imshow(pixels, cmap='gray', vmin=0, vmax=max(max(row) for row in pixels))
+                plt.imshow(pixels, cmap='jet', vmin=0, vmax=max(max(row) for row in pixels))
                 plt.show()
 
 
@@ -244,25 +244,25 @@ def display_color(path):
     cv2.imwrite(path, cv2.cvtColor(placeholder_rgb, cv2.COLOR_RGB2BGR))
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--walk_dir", help="Directory with images", type=str, required=True)
-    parser.add_argument("--red_components", help="1 or 2 depending on finger overlap", type=int, required=True)
-    parser.add_argument('--threshold', help='Threshold for binarizing image (background extraction)', type=int, required=True)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--walk_dir", help="Directory with images", type=str, required=True)
+    # parser.add_argument("--red_components", help="1 or 2 depending on finger overlap", type=int, required=True)
+    # parser.add_argument('--threshold', help='Threshold for binarizing image (background extraction)', type=int, required=True)
+    # args = parser.parse_args()
 
-    FLAGS = 2
+    FLAGS = 1
     if FLAGS & DEPTH:
-        depth_walk = r"C:\Program Files\Azure Kinect SDK v1.1.1\tools\p0g4"
+        depth_walk = r"C:\Program Files\Azure Kinect SDK v1.1.1\tools\depth"
         display_depth(depth_walk)
 
-    if FLAGS & COLOR:
-        for root, dirs, files in os.walk(args.walk_dir):
-            for f in files:
-                if "png" in f:
-                    try:
-                        path = os.path.join(root, f)
-                        display_color(path)
-                        print("{} finished".format(path))
-                    except:
-                        print("{} failed".format(path))
-                        continue
+    # if FLAGS & COLOR:
+    #     for root, dirs, files in os.walk(args.walk_dir):
+    #         for f in files:
+    #             if "png" in f:
+    #                 try:
+    #                     path = os.path.join(root, f)
+    #                     display_color(path)
+    #                     print("{} finished".format(path))
+    #                 except:
+    #                     print("{} failed".format(path))
+    #                     continue
