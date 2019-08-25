@@ -23,6 +23,10 @@ There were total of ~2800 frames. Epoch for DeepLab takes about 30 minutes on GT
 * Class acuraccy: 93.5%
 * Gesture classification: 97%
 
+## Examples
+![examples](c1.png)
+![examples](c2.png)
+
 ## Futher work
 * Collect more data in different environment
 * Use more gestures with _unkown_ class
